@@ -46,3 +46,18 @@
 
 ### 초기설정 - VSCode, Git, nvm, Typescript
 
+1. **VSCode 세팅**
+- extensions 확장프로그램 설치
+  - Prettier - Code Formatter : 코드 정리 기능
+    - 중간에 Cmd + alt + F 로 코드 정리하는 습관이 있어서 설치 X
+  - Tailwind CSS IntelliSense : Tailwind CSS 자동완성 기능
+  - GitHub Copilot : 코드 자동완성 기능
+    - Cursor 사용으로 설치 X
+
+2. **Git 설치**
+3. **nvm(노드 버전 관리) 또는 node 설치**
+4. **Typescript 설치**
+  - npm 전역으로 설치하면 오류나서 brew로 설치
+
+    >$ brew install typescript
+
