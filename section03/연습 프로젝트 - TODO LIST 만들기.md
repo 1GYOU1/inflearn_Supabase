@@ -1,6 +1,13 @@
 # 연습 프로젝트 - TODO LIST 만들기
 
-### Git Repository 생성 및 초기 설정 진행
+주요 기능
+- 할일 조회, 생성, 수정, 삭제
+- 할일 검색
+- 할일 완료 여부 표시
+
+<br>
+
+## Git Repository 생성 및 초기 설정 진행
 
 nextjs 14 버전 프로젝트 설치
 >$ npx create-next-app@14 supabase-todo-list
@@ -172,4 +179,477 @@ export default function RootLayout({
 ```
 
 <br>
+<br>
 
+## 첫 Supabase 프로젝트 생성
+
+<br>
+
+![스크린샷 2025-01-04 오후 3 17 53](https://github.com/user-attachments/assets/60f2c877-529c-4ded-8a92-b4ac98f4710c)
+
+![스크린샷 2025-01-04 오후 3 24 46](https://github.com/user-attachments/assets/98b97a76-0470-4927-993d-6cbaf3dd92b5)
+
+![스크린샷 2025-01-04 오후 4 08 47](https://github.com/user-attachments/assets/9c9a3c7e-3f4d-40d6-8bbb-1e336550156e)
+
+![스크린샷 2025-01-04 오후 4 09 48](https://github.com/user-attachments/assets/cf751c95-ca1d-402f-9346-3bc7afc14b64)
+
+![스크린샷 2025-01-04 오후 4 11 36](https://github.com/user-attachments/assets/024abc8d-b878-4e42-bd8c-c65e0797aa0c)
+
+<br>
+
+.env 파일 생성
+
+- 프로젝트 내에서 사용할 환경변수를 정의하는 파일
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://[project_id].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY= -> anon api key 사이트에서 확인 가능
+NEXT_SUPABASE_SERVICE_ROLE= -> service role 키 사이트에서 확인 가능
+NEXT_SUPABASE_DB_PASSWORD= -> DB 비밀번호 저장해놨던 것
+```
+
+<br>
+
+package.json 수정
+
+- [project_id] 부분에 Project URL 앞부분을 넣어주기
+  - yxblxhdbfjpthoeujsvn
+- generate-types는 언어별로 타입을 생성해줌
+  - npx, supabase, gen, types를 typescript 형식으로 생성하고, 프로젝트 이름은 yxblxhdbfjpthoeujsvn 이거고, 스키마를 작성해서 파일 이름 types_db.ts에 저장
+```json
+"scripts": {
+  // dev, build, start, lint
+  "generate-types": "npx supabase gen types typescript --project-id [project_id] --schema public > types_db.ts"
+}
+```
+
+적용 예시 
+
+```json
+"scripts": {
+  // dev, build, start, lint
+  "generate-types": "npx supabase gen types typescript --project-id yxblxhdbfjpthoeujsvn --schema public > types_db.ts"
+}
+```
+
+<br>
+
+타입 생성 명령어 실행하게되면 실패하게되는데 이유는 supabase에 로그인을 해야하기 때문이다. 로그인을 해준 뒤 실행하면 정상적으로 파일이 생성된다.
+
+>$ npx supabase login
+
+>$ npm run generate-types
+
+<br>
+<br>
+
+## 필수 라이브러리 설정 - React Query, Supabase
+
+- React Query는 데이터를 캐싱하고 캐시를 관리하는 라이브러리
+  - 서버에서 클라이언트 쪽으로 데이터로 왔다 갔다 할때 해당 데이터들을 캐싱을 하거나 로딩 상태인지 에러가 났을 때 어떤 행동을 할지 명시할 수 있도록 만들어진 라이브러리
+- Supabase는 데이터베이스 서비스
+
+<br>
+
+React Query, Supabase 설치
+
+>$ npm i --save @supabase/ssr @tanstack/react-query
+
+<br>
+
+### React Query 설정
+
+/config/ReactQueryClientProvider.tsx 파일 생성
+
+```tsx
+// /config/ReactQueryClientProvider.tsx
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// 쿼리 관련된 요청들의 캐시 관리 역할
+export const queryClient = new QueryClient({});
+
+export default function ReactQueryClientProvider({
+  children,
+}: React.PropsWithChildren) {
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+```
+
+<br>
+
+app/layout.tsx 파일 수정
+- ReactQuery 적용을 위해 body 태그 ReactQueryClientProvider로 감싸주기
+
+```tsx
+//...
+import { ThemeProvider } from "config/material-tailwind-theme-provider";
+import ReactQueryClientProvider from "config/ReactQueryClientProvider";
+//...
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+          integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
+      </head>
+      <ReactQueryClientProvider> {/* body 태그 감싸주기 */}
+        <ThemeProvider>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            {children}
+          </body>
+        </ThemeProvider>
+      </ReactQueryClientProvider>
+    </html>
+  );
+}
+```
+
+<br>
+
+### Supabase 설정
+
+.env 파일 생성 (위에 있는 내용 참고)
+
+<br>
+
+/config/supabase-client.tsx 파일 생성
+
+- 클라이언트 쪽에서 사용할 Supabase 클라이언트 생성
+
+
+**utils/supabase/client.ts**
+
+- **목적**: 브라우저 환경에서 Supabase 클라이언트를 생성하기 위한 함수
+- **주요 기능**:
+- createBrowserSupabaseClient(): 브라우저에서 사용할 Supabase 클라이언트를 생성, Supabase의 URL과 익명 키를 환경 변수에서 읽어옴
+
+```ts
+"use client";
+
+import { createBrowserClient } from "@supabase/ssr";
+
+// supabase SDK를 사용하기 위해 이니셜라이즈 해주는 부분
+export const createBrowserSupabaseClient = () =>
+  createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+```
+
+<br>
+
+**utils/supabase/server.ts**
+
+- **목적**: 서버 환경에서 Supabase 클라이언트를 생성하기 위한 함수들
+- **주요 기능**:
+    - createServerSupabaseClient(): 서버에서 사용할 Supabase 클라이언트 생성. 환경 변수에서 Supabase의 URL과, 주어진 권한에 따라 비공식 또는 관리 권한 키를 사용하고, 쿠키 관리 기능도 포함되어 있음.
+    - createServerSupabaseAdminClient(): 관리 권한을 가진 Supabase 클라이언트를 생성, 서버 측에서만 호출되며, admin 플래그를 true로 설정하여 관리 키 사용.
+
+```ts
+"use server";
+
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { Database } from "types_db";
+
+export const createServerSupabaseClient = async (
+  cookieStore: ReturnType<typeof cookies> = cookies(),
+  admin: boolean = false
+) => {
+  return createServerClient<Database>( //Database 타입 자동 추론
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    admin // 어드민일 경우
+      ? process.env.NEXT_SUPABASE_SERVICE_ROLE!
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: "", ...options });
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  );
+};
+
+export const createServerSupabaseAdminClient = async (
+  cookieStore: ReturnType<typeof cookies> = cookies()
+) => {
+  return createServerSupabaseClient(cookieStore, true);
+};
+```
+
+<br>
+
+**app/middleware.ts**
+
+- **목적**: Next.js 애플리케이션에서 요청 및 응답을 처리하고 Supabase 클라이언트를 적용하기 위한 미들웨어
+- **주요 기능**:
+    - applyMiddlewareSupabaseClient(): 요청을 처리하며 Supabase 클라이언트를 생성하고, 쿠키를 관리. 요청과 응답에 Supabase 클라이언트를 통합하고 인증 토큰을 갱신한다.
+    - middleware(): applyMiddlewareSupabaseClient()를 호출하여 미들웨어를 구현하며, 특정 요청 경로에 대해 미들웨어가 동작하도록 설정한다.
+
+```ts
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from "next/server";
+
+export const applyMiddlewareSupabaseClient = async (request: NextRequest) => {
+  // Create an unmodified response
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          // If the cookie is updated, update the cookies for the request and response
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: CookieOptions) {
+          // If the cookie is removed, update the cookies for the request and response
+          request.cookies.set({
+            name,
+            value: "",
+            ...options,
+          });
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          response.cookies.set({
+            name,
+            value: "",
+            ...options,
+          });
+        },
+      },
+    }
+  );
+
+  // refreshing the auth token
+  await supabase.auth.getUser();
+
+  return response;
+};
+
+export async function middleware(request) {
+  return await applyMiddlewareSupabaseClient(request);
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};
+```
+
+<br>
+<br>
+
+## 할일 CRUD 기능 구현 (feat. Server Action)
+
+supabase-todo-list/actions/todo-actions.ts 파일 생성
+
+- use server 라는 키워드를 사용하여 서버 컴포넌트로 만들어준다.
+- (사내 어드민에서는 createServerSupabaseClient로 서버에서 작업하지 않고, 대신 execute로 클라이언트단에서 사용할 수 있도록 작업해둠)
+```ts
+"use server";
+
+import { Database } from "types_db";
+import { createServerSupabaseClient } from "utils/supabase/server";
+
+// todo 타입 정의
+export type TodoRow = Database["public"]["Tables"]["todo"]["Row"];
+export type TodoRowInsert = Database["public"]["Tables"]["todo"]["Insert"];
+export type TodoRowUpdate = Database["public"]["Tables"]["todo"]["Update"];
+
+// 에러 처리 함수
+function handleError(error) {
+  console.error(error);
+  throw new Error(error.message);
+}
+
+export async function getTodos({ searchInput = "" }): Promise<TodoRow[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("todo") // todo 테이블에서
+    .select("*") // 모든 컬럼 선택
+    .like("title", `%${searchInput}%`) // title 컬럼에서 searchInput 포함된 데이터 선택
+    .order("created_at", { ascending: true }); // created_at 컬럼 기준으로 오름차순 정렬
+
+  if (error) {
+    handleError(error);
+  }
+
+  return data;
+}
+
+export async function createTodo(todo: TodoRowInsert) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data, error } = await supabase.from("todo").insert({
+    ...todo,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    handleError(error);
+  }
+
+  return data;
+}
+
+export async function updateTodo(todo: TodoRowUpdate) {
+  const supabase = await createServerSupabaseClient();
+  console.log(todo);
+
+  const { data, error } = await supabase
+    .from("todo")
+    .update({
+      ...todo,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", todo.id);
+
+  if (error) {
+    handleError(error);
+  }
+
+  return data;
+}
+
+export async function deleteTodo(id: number) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data, error } = await supabase.from("todo").delete().eq("id", id);
+
+  if (error) {
+    handleError(error);
+  }
+
+  return data;
+}
+```
+
+<br>
+
+```tsx
+// supabase-todo-list/components/todo.tsx
+//...
+  const [isEditing, setIsEditing] = useState(false);
+  const [completed, setCompleted] = useState(todo.completed);
+  const [title, setTitle] = useState(todo.title);
+
+  const updateTodoMutation = useMutation({
+    mutationFn: () => updateTodo({
+      id: todo.id,
+      title,
+      completed,
+      updated_at: new Date().toISOString(),
+    }),
+    onSuccess: () => {
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
+
+  const deleteTodoMutation = useMutation({
+    mutationFn: () => deleteTodo(todo.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
+  //...
+```
+
+```tsx
+// supabase-todo-list/app/ui.tsx
+//...
+
+export default function UI() {
+  const [searchInput, setSearchInput] = useState("");
+
+  const todoQuery = useQuery({
+    queryKey: ["todos", searchInput],
+    queryFn: () => getTodos({ searchInput }),
+  });
+
+  const createTodoMutation = useMutation({
+    mutationFn: () => createTodo({
+      title: "New Todo",
+      completed: false,
+    }),
+
+    onSuccess: () => {
+      todoQuery.refetch();
+    },
+  });
+//...
+```
+
+완성 화면
+
+![스크린샷 2025-01-06 오후 11 27 47](https://github.com/user-attachments/assets/55b4535f-566e-4ea8-93b4-e10a2cd596ac)
+
+![스크린샷 2025-01-06 오후 11 28 01](https://github.com/user-attachments/assets/7efb10f4-976b-4ade-b42a-90a527e84dda)
