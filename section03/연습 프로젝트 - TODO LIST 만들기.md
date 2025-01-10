@@ -16,12 +16,12 @@ nextjs 14 버전 프로젝트 설치
 
 옵션 선택
 ```
-✔ Would you like to use TypeScript? … No / Yes
-✔ Would you like to use ESLint? … No / Yes
-✔ Would you like to use Tailwind CSS? … No / Yes
-✔ Would you like to use `src/` directory? … No / Yes
-✔ Would you like to use App Router? (recommended) … No / Yes
-✔ Would you like to customize the default import alias (@/*)? … No / Yes
+✔ Would you like to use TypeScript? … No / Yes -> Yes
+✔ Would you like to use ESLint? … No / Yes -> No
+✔ Would you like to use Tailwind CSS? … No / Yes -> Yes
+✔ Would you like to use `src/` directory? … No / Yes -> No
+✔ Would you like to use App Router? (recommended) … No / Yes -> Yes
+✔ Would you like to customize the default import alias (@/*)? … No / Yes -> No
 ```
 
 <br>
