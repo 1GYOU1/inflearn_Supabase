@@ -25,9 +25,10 @@
 Recoil 설치: Recoil을 사용하려면 먼저 패키지를 설치해야 합니다. npm을 사용하는 경우, 터미널에 npm install recoil을 입력하세요. yarn을 사용하는 경우, yarn add recoil을 입력하세요.
 
 Atom: Recoil에서 atom은 상태의 단위입니다. atom은 우리가 읽고 쓸 수 있는 상태의 조각으로 생각할 수 있습니다. atom을 생성하려면, atom 함수를 사용하고 필요한 key와 default 값을 제공해야 합니다.
-import { atom } from 'recoil';
 
 ```tsx
+import { atom } from 'recoil';
+
 const textState = atom({
   key: 'textState', // unique ID (with respect to other atoms/selectors)
   default: '', // default value (aka initial value)
@@ -58,9 +59,10 @@ function TextInput() {
 ```
 ​
 useRecoilValue: 이 hook은 Recoil 상태를 읽는 데 사용됩니다.
-import { useRecoilValue } from 'recoil';
 
 ```tsx
+import { useRecoilValue } from 'recoil';
+
 function TextDisplay() {
   const text = useRecoilValue(textState);
 
